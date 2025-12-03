@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp API - Interface Web</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-whatsapp"></i> WhatsApp API</h1>
+            <p>Interface web para envio de mensagens via WhatsApp</p>
+        </header>
+
+        <!-- Status da Conexão -->
+        <div class="status-section">
+            <div class="status-card" id="statusCard">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <div class="status-info">
+                    <h3>Status da Conexão</h3>
+                    <p id="statusText">Desconectado</p>
+                    <small id="sessionInfo">Sessão: Não iniciada</small>
+                </div>
+                <button id="connectBtn" class="btn btn-primary">
+                    <i class="fas fa-qrcode"></i> Conectar
+                </button>
+            </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-section" id="qrSection" style="display: none;">
+            <div class="qr-card">
+                <h3><i class="fas fa-qrcode"></i> Escaneie o QR Code</h3>
+                <div class="qr-container">
+                    <img id="qrImage" src="" alt="QR Code">
+                    <div class="qr-loading" id="qrLoading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Gerando QR Code...</p>
+                    </div>
+                </div>
+                <p class="qr-instructions">
+                    1. Abra o WhatsApp no seu celular<br>
+                    2. Toque em Menu ou Configurações<br>
+                    3. Toque em WhatsApp Web<br>
+                    4. Escaneie este código
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulário de Envio -->
+        <div class="send-section">
+            <div class="send-card">
+                <h3><i class="fas fa-paper-plane"></i> Enviar Mensagem</h3>
+                
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label for="recipient">
+                            <i class="fas fa-user"></i> Destinatário
+                        </label>
+                        <input type="text" id="recipient" placeholder="81999999999, 55 81 99999-9999, 5581999999999..." required>
+                        <small id="numberHint">Digite o número em qualquer formato brasileiro</small>
+                        <div id="numberPreview" class="number-preview" style="display: none;">
+                            <span class="preview-label">Formato detectado:</span>
+                            <span id="previewText"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageType">
+                            <i class="fas fa-list"></i> Tipo de Mensagem
+                        </label>
+                        <select id="messageType">
+                            <option value="text">Texto</option>
+                            <option value="image">Imagem</option>
+                            <option value="audio">Áudio</option>
+                            <option value="video">Vídeo</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo de Texto -->
+                    <div class="form-group" id="textGroup">
+                        <label for="messageText">
+                            <i class="fas fa-comment"></i> Mensagem
+                        </label>
+                        <textarea id="messageText" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                    </div>
+
+                    <!-- Campo de Arquivo -->
+                    <div class="form-group" id="fileGroup" style="display: none;">
+                        <label for="messageFile">
+                            <i class="fas fa-file"></i> Arquivo
+                        </label>
+                        <input type="file" id="messageFile" accept="image/*,audio/*,video/*">
+                        <small id="fileHint">Selecione uma imagem</small>
+                    </div>
+
+                    <!-- Campo de Legenda -->
+                    <div class="form-group" id="captionGroup" style="display: none;">
+                        <label for="messageCaption">
+                            <i class="fas fa-tag"></i> Legenda (opcional)
+                        </label>
+                        <input type="text" id="messageCaption" placeholder="Legenda da mídia...">
+                    </div>
+
+                    <button type="submit" class="btn btn-success" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i> Enviar Mensagem
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Log de Mensagens -->
+        <div class="log-section">
+            <div class="log-card">
+                <h3><i class="fas fa-history"></i> Log de Mensagens</h3>
+                <div class="log-container" id="logContainer">
+                    <p class="log-empty">Nenhuma mensagem enviada ainda</p>
+                </div>
+                <button class="btn btn-secondary" id="clearLogBtn">
+                    <i class="fas fa-trash"></i> Limpar Log
+                </button>
+            </div>
+        </div>
+
+        <!-- Webhook Configuration -->
+        <div class="webhook-section">
+            <div class="webhook-card">
+                <h3><i class="fas fa-webhook"></i> Configuração de Webhook</h3>
+                <form id="webhookForm">
+                    <div class="form-group">
+                        <label for="webhookUrl">
+                            <i class="fas fa-link"></i> URL do Webhook
+                        </label>
+                        <input type="url" id="webhookUrl" placeholder="https://meusite.com/webhook/whatsapp">
+                        <small>URL que receberá as mensagens via POST</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-cog"></i> Eventos
+                        </label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="eventMessage" value="message" checked>
+                                <span>Mensagens recebidas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="eventStatus" value="status_change">
+                                <span>Mudanças de status</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Configurar Webhook
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processando...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

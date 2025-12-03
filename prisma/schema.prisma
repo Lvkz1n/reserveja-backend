@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleGlobal {
+  super_admin
+  user
+}
+
+enum RoleCompany {
+  admin
+  atendente
+  profissional
+  leitura
+}
+
+enum CompanyStatus {
+  active
+  inactive
+}
+
+enum ScheduleMode {
+  global
+  per_professional
+  mixed
+}
+
+enum AppointmentStatus {
+  scheduled
+  confirmed
+  canceled
+  no_show
+  reschedule_requested
+}
+
+enum AppointmentSource {
+  manual
+  online_form
+  whatsapp
+}
+
+enum MessageTemplateType {
+  confirmation
+  reminder_1d
+  reminder_30m
+  reminder_10m
+  post_service
+  reactivation
+}
+
+enum WhatsAppStatus {
+  connected
+  disconnected
+  pending
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  roleGlobal    RoleGlobal     @default(user)
+  companyUsers  CompanyUser[]
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Company {
+  id             String             @id @default(uuid())
+  name           String
+  document       String?
+  email          String?
+  phone          String?
+  address        String?
+  status         CompanyStatus      @default(active)
+  plan           String?
+  logoUrl        String?
+  primaryColor   String?
+  scheduleMode   ScheduleMode       @default(global)
+  companyUsers   CompanyUser[]
+  services       Service[]
+  clients        Client[]
+  appointments   Appointment[]
+  messageTemplates MessageTemplate[]
+  whatsappConnections WhatsAppConnection[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model CompanyUser {
+  id         String      @id @default(uuid())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String
+  company    Company     @relation(fields: [companyId], references: [id])
+  companyId  String
+  roleCompany RoleCompany
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  appointmentsProfessional Appointment[] @relation("Professional")
+  @@unique([userId, companyId])
+}
+
+model Service {
+  id              String    @id @default(uuid())
+  company         Company   @relation(fields: [companyId], references: [id])
+  companyId       String
+  name            String
+  durationMinutes Int
+  price           Decimal   @db.Decimal(10, 2)
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  appointments    Appointment[]
+}
+
+model Client {
+  id         String    @id @default(uuid())
+  company    Company   @relation(fields: [companyId], references: [id])
+  companyId  String
+  name       String
+  phone      String
+  email      String?
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  appointments Appointment[]
+}
+
+model Appointment {
+  id             String             @id @default(uuid())
+  company        Company            @relation(fields: [companyId], references: [id])
+  companyId      String
+  client         Client             @relation(fields: [clientId], references: [id])
+  clientId       String
+  service        Service            @relation(fields: [serviceId], references: [id])
+  serviceId      String
+  professional   CompanyUser?       @relation("Professional", fields: [professionalId], references: [id])
+  professionalId String?
+  date           DateTime
+  time           String
+  status         AppointmentStatus  @default(scheduled)
+  source         AppointmentSource  @default(manual)
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model MessageTemplate {
+  id         String               @id @default(uuid())
+  company    Company              @relation(fields: [companyId], references: [id])
+  companyId  String
+  type       MessageTemplateType
+  name       String
+  content    String
+  active     Boolean              @default(true)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+}
+
+model WhatsAppConnection {
+  id               String        @id @default(uuid())
+  company          Company       @relation(fields: [companyId], references: [id])
+  companyId        String
+  externalInstanceId String
+  status           WhatsAppStatus @default(pending)
+  lastQrCode       String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+model Plan {
+  id        String   @id @default(uuid())
+  name      String
+  description String?
+  price     Decimal? @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+}
