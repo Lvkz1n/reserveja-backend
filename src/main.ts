@@ -8,11 +8,18 @@ import { AuthService } from './auth/auth.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
   const configService = app.get(ConfigService);
-  const corsOrigin = configService.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000';
+  const corsOriginEnv = configService.get<string>('CORS_ORIGIN');
+  const corsOrigin =
+    corsOriginEnv
+      ?.split(',')
+      .map((v) => v.trim())
+      .filter(Boolean) || ['http://localhost:3000'];
 
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Company-Id'],
   });
 
   app.use(cookieParser());
