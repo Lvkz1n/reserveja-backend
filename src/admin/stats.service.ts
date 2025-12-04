@@ -8,7 +8,7 @@ export class StatsService {
 
   async stats() {
     const monthStart = startOfMonth(new Date());
-    const [totalCompanies, appointmentsThisMonth, messagesSent] = await this.prisma.$transaction([
+    const [totalCompanies, appointmentsThisMonth, messagesSent] = await Promise.all([
       this.prisma.company.count(),
       this.prisma.appointment.count({ where: { createdAt: { gte: monthStart } } }),
       Promise.resolve(0),
@@ -23,7 +23,7 @@ export class StatsService {
   async dashboard() {
     const today = new Date();
     const weekStart = subDays(today, 7);
-    const [totalCompanies, appointmentsWeek] = await this.prisma.$transaction([
+    const [totalCompanies, appointmentsWeek] = await Promise.all([
       this.prisma.company.count(),
       this.prisma.appointment.count({ where: { createdAt: { gte: weekStart } } }),
     ]);

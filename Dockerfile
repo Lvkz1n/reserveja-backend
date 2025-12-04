@@ -1,11 +1,11 @@
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
 COPY package.json package-lock.json* tsconfig*.json ./
 COPY prisma ./prisma
 
-RUN npm install --production
+RUN npm ci
 
 COPY src ./src
 

@@ -6,5 +6,6 @@
     "noEmit": false,
     "removeComments": true
   },
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"]
 }

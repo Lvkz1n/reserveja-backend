@@ -1,18 +1,21 @@
-import { PrismaClient, RoleCompany } from '@prisma/client';
+import { PrismaClient, RoleCompany, RoleGlobal } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-async function upsertUser(email: string, password: string, name: string) {
+async function upsertUser(email: string, password: string, name: string, roleGlobal: RoleGlobal = 'user') {
   const passwordHash = await bcrypt.hash(password, 10);
   return prisma.user.upsert({
     where: { email },
-    update: { name, passwordHash },
-    create: { email, name, passwordHash, roleGlobal: 'user' },
+    update: { name, passwordHash, roleGlobal },
+    create: { email, name, passwordHash, roleGlobal },
   });
 }
 
 async function main() {
+  // Super admin global
+  const superAdmin = await upsertUser('admin@reserveja.local', 'admin123', 'Super Admin', 'super_admin');
+
   const company = await prisma.company.upsert({
     where: { id: 'company-demo' },
     update: {},
@@ -64,6 +67,7 @@ async function main() {
   console.log('Admin:', 'admin@empresa.demo / senha123');
   console.log('Atendente:', 'atendente@empresa.demo / senha123');
   console.log('Profissional:', 'profissional@empresa.demo / senha123');
+  console.log('Super admin global:', `${superAdmin.email} / admin123`);
 }
 
 main()
