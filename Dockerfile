@@ -11,4 +11,4 @@ COPY src ./src
 
 RUN npm run build
 
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run seed && node dist/main.js"]

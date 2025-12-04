@@ -16,7 +16,7 @@ services:
       - WHATSAPP_API_URL=${WHATSAPP_API_URL:-http://whatsapp-gateway.mock/send}
     depends_on:
       - db
-    command: sh -c "npx prisma migrate deploy && node dist/main.js"
+    command: sh -c "npx prisma migrate deploy && npm run seed && node dist/main.js"
   db:
     image: postgres:16
     restart: always
